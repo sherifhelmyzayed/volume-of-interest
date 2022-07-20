@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "convex-hull": "^1.0.3",
     "gsap": "^3.10.4",
     "three": "^0.142.0"
   }

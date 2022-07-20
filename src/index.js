@@ -1,13 +1,15 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'OrbitControls';
 import { GLTFLoader } from 'GLTFLoader';
+import { ConvexGeometry } from 'ConvexGeometry';
+
 
 
 /////////////////////////////////////////////////////////////////////
 //////////////////// THREEJS SCENE PREP STARTS //////////////////////
 /////////////////////////////////////////////////////////////////////
 
-let camera, controls, scene, renderer, boundingObject, raycaster;
+let camera, controls, scene, renderer, raycaster, objData;
 
 let target = {
     x: null,
@@ -16,6 +18,7 @@ let target = {
 }
 let zoomCondition
 let newOffset = 300
+let maxOffset;
 
 
 
@@ -30,9 +33,6 @@ const init = () => {
     camera.position.set(400, 200, 0);
 
     // lights
-    // hlight = new THREE.AmbientLight(0x404040, 50)
-    // scene.add(hlight)
-
     const directionalLight = new THREE.DirectionalLight(0xffffff, 5)
     directionalLight.position.set(0, 10, 0)
     directionalLight.castShadow = true;
@@ -58,22 +58,12 @@ const init = () => {
         // traverse to get object dimensions
         gltf.scene.traverse((child) => {
             if (child.isMesh) {
-                const box = new THREE.Box3().setFromObject(child);
-                const boxSize = box.getSize(new THREE.Vector3());
-
-                // creating boundingObject
-                const geometry = new THREE.BoxGeometry(boxSize.x, boxSize.y, boxSize.z);
-                const material = new THREE.MeshBasicMaterial({
-                    wireframe: true,
-                    color: 0xffff00,
-                });
-                // material.transparent = true
-                boundingObject = new THREE.Mesh(geometry, material);
-                scene.add(boundingObject);
+                objData = child
             }
         })
         const obj = gltf.scene.children[0];
-        obj.position.set(22, 0, 0)
+        obj.position.set(22, 0, 0);
+        createCouvexHull(objData)
         scene.add(gltf.scene);
         animate();
     })
@@ -145,7 +135,7 @@ render();
 
 const offsetChange = () => {
     document.getElementById('offsetLabel').innerText = `offset: ${document.querySelector('#offset').value}`;
-    newOffset1 = parseInt(document.querySelector('#offset').value)
+    maxOffset = parseInt(document.querySelector('#offset').value)
 }
 
 document.querySelector('#offset').addEventListener('change', () => offsetChange())
@@ -157,33 +147,30 @@ document.addEventListener('wheel', () => {
 });
 
 
-
-
-/// ******************************************************************* ////
-/// ******************** NOTES **************************************** ////
-
-
-// distance to point zero
-// camera.position.distanceTo(controls.target)
-
-// distance to raycaster object
-// raycaster.intersectObjects(scene.children)[0].distance
-
-
-// keep distance while not zooming
-
-
-
-
-// define r =
-// x = r cos(azimuth phi) sin (polar theta)
-// y = r sin(azimuth phi) cos (polar theta)
-// z = r cos (polar theta)
-
-
 const goToTarget = (camera, target) => {
     camera.position.x += (target.x - camera.position.x) * 0.1;
     camera.position.y += (target.y - camera.position.y) * 0.1;
     camera.position.z += (target.z - camera.position.z) * 0.1;
 }
 
+
+const createCouvexHull = (objData) => {
+    const position = objData.geometry.attributes.position.array
+    const points = []
+    
+    for (let i = 0; i < position.length; i += 3) {
+        const vertex = new THREE.Vector3(position[i], position[i + 1], position[i + 2]);
+        points.push(vertex);
+    }
+
+    const ConvexGeo = new ConvexGeometry(points)
+    const convexHull = new THREE.Mesh(
+        ConvexGeo,
+        new THREE.MeshBasicMaterial({
+            color: 0x00ff00,
+            wireframe: true,
+            transparent: true
+        })
+    )
+    objData.add(convexHull)
+}
