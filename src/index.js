@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'OrbitControls';
 import { GLTFLoader } from 'GLTFLoader';
 import { ConvexGeometry } from 'ConvexGeometry';
+import {offsetCam} from './orbit-control-extendid/index.js'
 
 
 
@@ -9,16 +10,11 @@ import { ConvexGeometry } from 'ConvexGeometry';
 //////////////////// THREEJS SCENE PREP STARTS //////////////////////
 /////////////////////////////////////////////////////////////////////
 
-let camera, controls, scene, renderer, raycaster, objData;
+let camera, controls, scene, renderer,
+ raycaster, objData, 
+ target = { x: null, y: null, z: null }, 
+ zoomCondition, newOffset = 300, maxOffset;
 
-let target = {
-    x: null,
-    y: null,
-    z: null
-}
-let zoomCondition
-let newOffset = 300
-let maxOffset;
 
 
 
@@ -95,25 +91,15 @@ const onWindowResize = () => {
 const animate = () => {
     requestAnimationFrame(animate);
 
+    
     if (zoomCondition) {
         setTimeout(() => {
             zoomCondition = false
-            console.log(zoomCondition);
-            console.log(camera.position.distanceTo(controls.target));
         }, 600);
-    }
-    raycaster.setFromCamera({ x: 0, y: 0 }, camera);
-    const newRadius = newOffset + (camera.position.distanceTo(controls.target) - raycaster.intersectObjects(scene.children)[0].distance)
+    } 
 
-    target.x = newRadius * Math.sin(controls.getAzimuthalAngle()) * Math.sin(controls.getPolarAngle())
-    target.y = newRadius * Math.cos(controls.getPolarAngle())
-    target.z = newRadius * Math.cos(controls.getAzimuthalAngle()) * Math.sin(controls.getPolarAngle());
+    newOffset = offsetCam(scene, camera, controls, raycaster, target, newOffset, zoomCondition)
 
-    if (!zoomCondition) {
-        goToTarget(camera, target)
-    } else {
-        newOffset = raycaster.intersectObjects(scene.children)[0].distance
-    }
     render();
 }
 
@@ -157,7 +143,7 @@ const goToTarget = (camera, target) => {
 const createCouvexHull = (objData) => {
     const position = objData.geometry.attributes.position.array
     const points = []
-    
+
     for (let i = 0; i < position.length; i += 3) {
         const vertex = new THREE.Vector3(position[i], position[i + 1], position[i + 2]);
         points.push(vertex);
