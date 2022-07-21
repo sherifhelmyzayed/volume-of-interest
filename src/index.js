@@ -55,17 +55,20 @@ const init = () => {
     loader.load('../glb/scene.gltf', (gltf) => {
 
         // updates actual dimensions after object scaling 
-        gltf.scene.updateMatrixWorld(true)
+        gltf.scene.updateMatrixWorld(true);
 
         // traverse to get object dimensions
         gltf.scene.traverse((child) => {
             if (child.isMesh) {
-                objData = child
+                objData = child;
             }
         })
         const obj = gltf.scene.children[0];
         obj.position.set(22, 0, 0);
-        objData.add(controls.createCouvexHull(objData))
+
+        // couvex geometry is added over the GLTF model 
+        objData.add(controls.createCouvexHull(objData));
+
         scene.add(gltf.scene);
         animate();
     })
@@ -88,12 +91,12 @@ const animate = () => {
 
     if (controls.zoomCondition) {
         setTimeout(() => {
-            controls.zoomCondition = false
+            controls.zoomCondition = false;
         }, 600);
     }
 
 
-    controls.offsetCam(scene, raycaster)
+    controls.offsetCam(scene, raycaster);
 
     render();
 }
@@ -117,7 +120,7 @@ render();
 // event listener to changing offset input
 document.querySelector('#offset').addEventListener('change', () => {
     document.getElementById('offsetLabel').innerText = `offset: ${document.querySelector('#offset').value}`;
-    controls.maxDistance = parseInt(document.querySelector('#offset').value)
+    controls.maxDistance = parseInt(document.querySelector('#offset').value);
 })
 
 
