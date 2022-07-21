@@ -6,6 +6,8 @@ import { OrbitControls } from 'OrbitControls';
 export class OrbitControlsExtended extends OrbitControls {
     constructor(camera, domElement) {
         super(camera, domElement)
+
+        this.camera = camera
     }
 
     // starter variables
@@ -13,13 +15,13 @@ export class OrbitControlsExtended extends OrbitControls {
     camTo0;
     camFromObj = 300;
     targetPosition = { x: null, y: null, z: null };
-    maxOffset;
 
 
-
-    offsetCam = (scene, camera, raycaster) => {
-        raycaster.setFromCamera({ x: 0, y: 0 }, camera);
-        this.camTo0 = this.camFromObj + (camera.position.distanceTo(this.target) - raycaster.intersectObjects(scene.children)[0].distance);
+    offsetCam = (scene, raycaster) => {
+        console.log(this.maxDistance);
+        raycaster.setFromCamera({ x: 0, y: 0 }, this.camera);
+        this.camTo0 = this.camFromObj + (this.camera.position.distanceTo(this.target) - raycaster.intersectObjects(scene.children)[0].distance);
+        if (this.camTo0 > this.maxDistance) this.camTo0 = this.maxDistance
         this.targetPosition = {
             x: this.camTo0 * Math.sin(this.getAzimuthalAngle()) * Math.sin(this.getPolarAngle()),
             y: this.camTo0 * Math.cos(this.getPolarAngle()),
@@ -27,17 +29,17 @@ export class OrbitControlsExtended extends OrbitControls {
         }
 
         if (!this.zoomCondition) {
-            this.goToTarget(camera)
+            this.goToTarget()
         } else {
             this.camFromObj = raycaster.intersectObjects(scene.children)[0].distance
         }
     }
 
 
-    goToTarget = (camera) => {
-        camera.position.x += (this.targetPosition.x - camera.position.x) * 0.1;
-        camera.position.y += (this.targetPosition.y - camera.position.y) * 0.1;
-        camera.position.z += (this.targetPosition.z - camera.position.z) * 0.1;
+    goToTarget = () => {
+        this.camera.position.x += (this.targetPosition.x - this.camera.position.x) * 0.1;
+        this.camera.position.y += (this.targetPosition.y - this.camera.position.y) * 0.1;
+        this.camera.position.z += (this.targetPosition.z - this.camera.position.z) * 0.1;
     }
 
 

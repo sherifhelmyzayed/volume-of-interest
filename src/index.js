@@ -93,7 +93,7 @@ const animate = () => {
     }
 
 
-    controls.offsetCam(scene, camera, raycaster)
+    controls.offsetCam(scene, raycaster)
 
     render();
 }
@@ -117,7 +117,7 @@ render();
 // event listener to changing offset input
 document.querySelector('#offset').addEventListener('change', () => {
     document.getElementById('offsetLabel').innerText = `offset: ${document.querySelector('#offset').value}`;
-    controls.maxOffset = parseInt(document.querySelector('#offset').value)
+    controls.maxDistance = parseInt(document.querySelector('#offset').value)
 })
 
 
