@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'OrbitControls';
 import { GLTFLoader } from 'GLTFLoader';
 import { ConvexGeometry } from 'ConvexGeometry';
-import {offsetCam} from './orbit-control-extendid/index.js'
+import { offsetCam, OrbitControlsExtended } from './orbit-control-extendid/index.js'
 
 
 
@@ -11,9 +11,9 @@ import {offsetCam} from './orbit-control-extendid/index.js'
 /////////////////////////////////////////////////////////////////////
 
 let camera, controls, scene, renderer,
- raycaster, objData, 
- target = { x: null, y: null, z: null }, 
- zoomCondition, newOffset = 300, maxOffset;
+    raycaster, objData,
+    target = { x: null, y: null, z: null },
+    newOffset = 300;
 
 
 
@@ -44,6 +44,23 @@ const init = () => {
     document.body.appendChild(renderer.domElement);
 
 
+
+
+    // raycaster
+    raycaster = new THREE.Raycaster()
+
+    // create new class
+    controls = new OrbitControlsExtended(camera, renderer.domElement)
+
+    // controls
+    // controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = false;
+    controls.dampingFactor = 0.05;
+    controls.screenSpacePanning = false;
+    controls.minDistance = 50;
+    controls.maxDistance = 500;
+    controls.maxPolarAngle = Math.PI / 2;
+
     // loader
     const loader = new GLTFLoader();
     loader.load('../glb/scene.gltf', (gltf) => {
@@ -59,27 +76,16 @@ const init = () => {
         })
         const obj = gltf.scene.children[0];
         obj.position.set(22, 0, 0);
-        createCouvexHull(objData)
+        objData.add(controls.createCouvexHull(objData))
         scene.add(gltf.scene);
         animate();
     })
 
 
-    // controls
-    controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = false;
-    controls.dampingFactor = 0.05;
-    controls.screenSpacePanning = false;
-    controls.minDistance = 50;
-    controls.maxDistance = 500;
-    controls.maxPolarAngle = Math.PI / 2;
-
-
     // window resize event
     window.addEventListener('resize', onWindowResize);
 
-    // raycaster
-    raycaster = new THREE.Raycaster()
+
 }
 
 const onWindowResize = () => {
@@ -91,14 +97,13 @@ const onWindowResize = () => {
 const animate = () => {
     requestAnimationFrame(animate);
 
-    
-    if (zoomCondition) {
+    if (controls.zoomCondition) {
         setTimeout(() => {
-            zoomCondition = false
+            controls.zoomCondition = false
         }, 600);
-    } 
+    }
 
-    newOffset = offsetCam(scene, camera, controls, raycaster, target, newOffset, zoomCondition)
+    newOffset = offsetCam(scene, camera, controls, raycaster, target, newOffset, controls.zoomCondition)
 
     render();
 }
@@ -119,44 +124,14 @@ render();
 
 
 
-const offsetChange = () => {
+// event listener to changing offset input
+document.querySelector('#offset').addEventListener('change', () => {
     document.getElementById('offsetLabel').innerText = `offset: ${document.querySelector('#offset').value}`;
-    maxOffset = parseInt(document.querySelector('#offset').value)
-}
-
-document.querySelector('#offset').addEventListener('change', () => offsetChange())
+    controls.maxOffset = parseInt(document.querySelector('#offset').value)
+})
 
 
-
+// event listener to zoom 
 document.addEventListener('wheel', () => {
-    zoomCondition = true;
+    controls.zoomCondition = true;
 });
-
-
-const goToTarget = (camera, target) => {
-    camera.position.x += (target.x - camera.position.x) * 0.1;
-    camera.position.y += (target.y - camera.position.y) * 0.1;
-    camera.position.z += (target.z - camera.position.z) * 0.1;
-}
-
-
-const createCouvexHull = (objData) => {
-    const position = objData.geometry.attributes.position.array
-    const points = []
-
-    for (let i = 0; i < position.length; i += 3) {
-        const vertex = new THREE.Vector3(position[i], position[i + 1], position[i + 2]);
-        points.push(vertex);
-    }
-
-    const ConvexGeo = new ConvexGeometry(points)
-    const convexHull = new THREE.Mesh(
-        ConvexGeo,
-        new THREE.MeshBasicMaterial({
-            color: 0x00ff00,
-            wireframe: true,
-            transparent: true
-        })
-    )
-    objData.add(convexHull)
-}

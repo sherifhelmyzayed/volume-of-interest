@@ -4,33 +4,45 @@ import { ConvexGeometry } from 'ConvexGeometry';
 import { OrbitControls } from 'OrbitControls';
 
 
-class OrbitControlsExtended extends OrbitControls {
-
-}
-
-
-
-
-export const createCouvexHull = (objData) => {
-    const position = objData.geometry.attributes.position.array
-    const points = []
-
-    for (let i = 0; i < position.length; i += 3) {
-        const vertex = new THREE.Vector3(position[i], position[i + 1], position[i + 2]);
-        points.push(vertex);
+export class OrbitControlsExtended extends OrbitControls {
+    constructor(camera, domElement) {
+        super(camera, domElement)
     }
 
-    const ConvexGeo = new ConvexGeometry(points)
-    const convexHull = new THREE.Mesh(
-        ConvexGeo,
-        new THREE.MeshBasicMaterial({
-            color: 0x00ff00,
-            wireframe: true,
-            transparent: true
-        })
-    )
-    objData.add(convexHull)
+    zoomCondition = false;
+    maxOffset;
+
+
+    
+
+
+
+
+
+
+    createCouvexHull = (objData) => {
+        const position = objData.geometry.attributes.position.array
+        const points = []
+    
+        for (let i = 0; i < position.length; i += 3) {
+            const vertex = new THREE.Vector3(position[i], position[i + 1], position[i + 2]);
+            points.push(vertex);
+        }
+    
+        const ConvexGeo = new ConvexGeometry(points)
+        const convexHull = new THREE.Mesh(
+            ConvexGeo,
+            new THREE.MeshBasicMaterial({
+                color: 0x00ff00,
+                wireframe: true,
+                transparent: true
+            })
+        )
+        return convexHull
+    }
+    
 }
+
 
 
 export const offsetCam = (scene, camera, controls, raycaster, target, newOffset, zoomCondition) => {
@@ -51,12 +63,7 @@ export const offsetCam = (scene, camera, controls, raycaster, target, newOffset,
     return newOffset
 }
 
-// class offsetCamClass {
-//     constructor (scene, camera, controls, raycaster, target, newOffset, zoomCondition)
 
-
-
-// }
 
 const goToTarget = (camera, target) => {
     camera.position.x += (target.x - camera.position.x) * 0.1;
@@ -65,15 +72,3 @@ const goToTarget = (camera, target) => {
 }
 
 
-const calculateCoordOnSphere = (target, newRadius, controls) => {
-    target.x = newRadius * Math.sin(controls.getAzimuthalAngle()) * Math.sin(controls.getPolarAngle())
-    target.y = newRadius * Math.cos(controls.getPolarAngle())
-    target.z = newRadius * Math.cos(controls.getAzimuthalAngle()) * Math.sin(controls.getPolarAngle());
-    return target
-}
-
-export const offsetInputChange = (maxOffset) => {
-    document.getElementById('offsetLabel').innerText = `offset: ${document.querySelector('#offset').value}`;
-    maxOffset = parseInt(document.querySelector('#offset').value)
-    return maxOffset
-}
