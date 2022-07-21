@@ -1,8 +1,6 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'OrbitControls';
 import { GLTFLoader } from 'GLTFLoader';
-import { ConvexGeometry } from 'ConvexGeometry';
-import { offsetCam, OrbitControlsExtended } from './orbit-control-extendid/index.js'
+import { OrbitControlsExtended } from './orbit-control-extendid/index.js'
 
 
 
@@ -10,13 +8,7 @@ import { offsetCam, OrbitControlsExtended } from './orbit-control-extendid/index
 //////////////////// THREEJS SCENE PREP STARTS //////////////////////
 /////////////////////////////////////////////////////////////////////
 
-let camera, controls, scene, renderer,
-    raycaster, objData,
-    target = { x: null, y: null, z: null },
-    newOffset = 300;
-
-
-
+let camera, controls, scene, renderer, raycaster, objData
 
 
 const init = () => {
@@ -42,9 +34,6 @@ const init = () => {
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
-
-
-
 
     // raycaster
     raycaster = new THREE.Raycaster()
@@ -103,7 +92,8 @@ const animate = () => {
         }, 600);
     }
 
-    newOffset = offsetCam(scene, camera, controls, raycaster, target, newOffset, controls.zoomCondition)
+
+    controls.offsetCam(scene, camera, raycaster)
 
     render();
 }
